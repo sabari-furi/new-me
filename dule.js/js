@@ -1,0 +1,56 @@
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Check if browser supports Notifications
+    if (!("Notification" in window)) {
+      alert("❌ This browser does not support desktop notifications.");
+      return;
+    }
+
+    let intervalId = null;
+
+    // Speak "Drink water" three times sequentially
+    function speakReminder() {
+      const texts = ["Drink water.", "Drink water.", "Drink water."];
+      function speakNext(index = 0) {
+        if (index >= texts.length) return;
+        const message = new SpeechSynthesisUtterance(texts[index]);
+        message.lang = 'en-US';
+        message.onend = () => speakNext(index + 1);
+        speechSynthesis.speak(message);
+      }
+      speakNext();
+    }
+
+    // Send notification and speak reminder
+    function sendNotification() {
+      if (Notification.permission === 'granted') {
+        new Notification("💧 Time to Drink Water!", {
+          body: "Stay hydrated. Take a sip!",
+          icon: "https://cdn-icons-png.flaticon.com/512/2913/2913465.png"
+        });
+        speakReminder();
+      }
+    }
+
+    // Initialize reminders (called after permission granted or on load if granted)
+    function initReminder() {
+      sendNotification(); // first notification immediately
+      intervalId = setInterval(sendNotification, 1800000); // every 30 minutes
+    }
+
+    // Request permission if needed and start reminders
+    if (Notification.permission === 'granted') {
+      initReminder();
+    } else if (Notification.permission !== 'denied') {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          initReminder();
+        } else {
+          alert("❌ Notifications denied. Please enable them in your browser settings.");
+        }
+      });
+    } else {
+      alert("❌ Notifications are blocked. Please enable them in your browser settings.");
+    }
+  });
+</script>

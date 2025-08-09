@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>💧 Drink Water Reminder</title>
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2913/2913465.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <img src="https://cdn-icons-png.flaticon.com/512/2913/2913465.png" alt="Water Icon" />
+    <h1>Drink Water Reminder</h1>
+    <p>This app reminds you to drink water every 30 minutes. Stay hydrated and healthy!</p>
+    <div class="status" id="status">🕒 Waiting for notification permission...</div>
+    <button class="btn-toggle" id="toggleBtn" disabled>Start Reminders</button>
+    <div class="timestamp" id="lastNotified">Last reminder: Not yet sent</div>
+  </div>
+
+  <script>
+    let intervalId = null;
+    const statusDiv = document.getElementById('status');
+    const toggleBtn = document.getElementById('toggleBtn');
+    const lastNotified = document.getElementById('lastNotified');
+
+    function speakReminder() {
+      const message = new SpeechSynthesisUtterance("thaani kudi da");
+      message.lang = 'en-US';
+      speechSynthesis.speak(message);
+    }
+
+    function sendNotification() {
+      if (Notification.permission === 'granted') {
+        new Notification("💧 Time to Drink Water!", {
+          body: "Take a sip and stay hydrated.",
+          icon: "https://cdn-icons-png.flaticon.com/512/2913/2913465.png"
+        });
+
+        speakReminder();
+
+        const time = new Date().toLocaleTimeString();
+        lastNotified.textContent = `Last reminder: ${time}`;
+      }
+    }
+
+    function startReminders() {
+      sendNotification();
+      intervalId = setInterval(sendNotification, 1800000);
+      statusDiv.textContent = "✅ Reminders are active!";
+      toggleBtn.textContent = "Stop Reminders";
+    }
+
+    function stopReminders() {
+      clearInterval(intervalId);
+      intervalId = null;
+      statusDiv.textContent = "⏸ Reminders paused.";
+      toggleBtn.textContent = "Start Reminders";
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      if (intervalId) {
+        stopReminders();
+      } else {
+        startReminders();
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!("Notification" in window)) {
+        statusDiv.textContent = "❌ This browser does not support notifications.";
+        toggleBtn.disabled = true;
+        return;
+      }
+
+      if (Notification.permission === 'granted') {
+        statusDiv.textContent = "✅ Notifications enabled. Click below to start.";
+        toggleBtn.disabled = false;
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            statusDiv.textContent = "✅ Notifications enabled. Click below to start.";
+            toggleBtn.disabled = false;
+          } else {
+            statusDiv.textContent = "❌ Notifications blocked. Enable them to get reminders.";
+            toggleBtn.disabled = true;
+          }
+        });
+      } else {
+        statusDiv.textContent = "❌ Notifications blocked. Enable them in browser settings.";
+        toggleBtn.disabled = true;
+      }
+    });
+  </script>
+</body>
+</html>
